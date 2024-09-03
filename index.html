@@ -3,74 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>WebAuthn Example</title>
     <script>
-         document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const storage = {
-                // Array to simulate a server-side storage of credentials
-                credentials: []
+                credentials: [] // Simulated server-side storage
             };
-        const getCredential = async() =>{
-            let cred = await navigator.credentials.create({
-                publicKey:{
-                    challenge: new Uint8Array([1,2,3,4]),
-                    rp:{
-                        id:"vishwp-atel.github.io",
-                        name:"lol supremacy"
-                    },
-                    user:{
-                        id: new Uint8Array([9,8,7,6,5]),
-                        name:"vishw",
-                        displayName:"Vizzly Bear"
-                    },
-                    pubKeyCredParams :[ {type:"public-key",alg:-7}]
+
+            const getCredential = async () => {
+                try {
+                    let cred = await navigator.credentials.create({
+                        publicKey: {
+                            challenge: new Uint8Array([1, 2, 3, 4]),
+                            rp: {
+                                id: "vishwp-atel.github.io", // Your GitHub Pages domain
+                                name: "lol supremacy"
+                            },
+                            user: {
+                                id: new Uint8Array([9, 8, 7, 6, 5]),
+                                name: "vishw",
+                                displayName: "Vizzly Bear"
+                            },
+                            pubKeyCredParams: [{ type: "public-key", alg: -7 }]
+                        }
+                    });
+
+                    return cred;
+                } catch (e) {
+                    console.error("Error creating credential:", e);
+                    throw e; // Re-throw to handle it in the caller
                 }
-            });
- 
-            return cred;
-        }
- 
-        const startReg = async() =>{
-            try{
-                const pubKey = await getCredential();
-                console.log("yeah baby registration completed",pubKey);
-                storage.credentials.push(pubKey);
-                alert("cred created");
-            }
-            catch(e){
-                console.log("catched",e);
-                alert("exception");
-            }
-        }
-   
-        const startAuth = async()=>{
-            try{
-                if(storage.credentials.length === 0)
-            {
-                alert("No credentials");
-                return;
-            }
-            const pubKey = {
-                challenge: new Uint8Array([1,2,3,4]),
-                allowCredentials:storage.credentials.map(cred=>({id:cred.rawId,type:"public-key"}))
             };
- 
-            const assertion = await navigator.credentials.get({publicKey});
-            console.log("Auth successfull",assertion);
-            alert("horray authenticated");
-           
-        }
-        catch(e){
-                console.log("catched",e);
-                alert("exception");
-           
-        }
-    }
-    document.getElementById('register').addEventListener('click', startReg);
-    document.getElementById('authenticate').addEventListener('click', startAuth);
-});
-   
-        </script>
+
+            const startReg = async () => {
+                try {
+                    const pubKey = await getCredential();
+                    console.log("Registration completed", pubKey);
+                    storage.credentials.push(pubKey);
+                    alert("Credential created");
+                } catch (e) {
+                    console.error("Registration error:", e);
+                    alert("Registration failed");
+                }
+            };
+
+            const startAuth = async () => {
+                try {
+                    if (storage.credentials.length === 0) {
+                        alert("No credentials available");
+                        return;
+                    }
+                    const pubKey = {
+                        challenge: new Uint8Array([1, 2, 3, 4]),
+                        allowCredentials: storage.credentials.map(cred => ({
+                            id: cred.rawId,
+                            type: "public-key"
+                        }))
+                    };
+
+                    const assertion = await navigator.credentials.get({ publicKey: pubKey });
+                    console.log("Authentication successful", assertion);
+                    alert("Authentication successful");
+                } catch (e) {
+                    console.error("Authentication error:", e);
+                    alert("Authentication failed");
+                }
+            };
+
+            document.getElementById('register').addEventListener('click', startReg);
+            document.getElementById('authenticate').addEventListener('click', startAuth);
+        });
+    </script>
 </head>
 <body>
     <button id="register">Register Credential</button>
