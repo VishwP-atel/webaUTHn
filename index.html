@@ -14,24 +14,27 @@
                 try {
                     let cred = await navigator.credentials.create({
                         publicKey: {
-                            challenge: new Uint8Array([1, 2, 3, 4]),
+                            challenge: new Uint8Array([1, 2, 3, 4]), // Simplified challenge for demo
                             rp: {
                                 id: "vishwp-atel.github.io", // Your GitHub Pages domain
                                 name: "lol supremacy"
                             },
                             user: {
-                                id: new Uint8Array([9, 8, 7, 6, 5]),
+                                id: new Uint8Array([9, 8, 7, 6, 5]), // Unique user ID
                                 name: "vishw",
                                 displayName: "Vizzly Bear"
                             },
-                            pubKeyCredParams: [{ type: "public-key", alg: -7 }]
+                            pubKeyCredParams: [{ type: "public-key", alg: -7 }] // Algorithm ES256
                         }
                     });
+
+                    // Convert the ArrayBuffer to base64url for storage (optional)
+                    cred.rawId = btoa(String.fromCharCode.apply(null, new Uint8Array(cred.rawId)));
 
                     return cred;
                 } catch (e) {
                     console.error("Error creating credential:", e);
-                    throw e; // Re-throw to handle it in the caller
+                    throw e;
                 }
             };
 
@@ -39,7 +42,7 @@
                 try {
                     const pubKey = await getCredential();
                     console.log("Registration completed", pubKey);
-                    storage.credentials.push(pubKey);
+                    storage.credentials.push(pubKey); // Store the credential
                     alert("Credential created");
                 } catch (e) {
                     console.error("Registration error:", e);
@@ -53,12 +56,17 @@
                         alert("No credentials available");
                         return;
                     }
+
+                    // Retrieve and convert the stored credential ID back to ArrayBuffer
+                    const storedCred = storage.credentials[0];
+                    const rawId = Uint8Array.from(atob(storedCred.rawId), c => c.charCodeAt(0));
+
                     const pubKey = {
-                        challenge: new Uint8Array([1, 2, 3, 4]),
-                        allowCredentials: storage.credentials.map(cred => ({
-                            id: cred.rawId,
+                        challenge: new Uint8Array([1, 2, 3, 4]), // Challenge used for authentication
+                        allowCredentials: [{
+                            id: rawId.buffer, // Use the ArrayBuffer for the ID
                             type: "public-key"
-                        }))
+                        }]
                     };
 
                     const assertion = await navigator.credentials.get({ publicKey: pubKey });
